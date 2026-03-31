@@ -36,6 +36,7 @@
                     <ul class="list-unstyled text-light opacity-75">
                         <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>Kigali Rwanda , kigali Nyarugenge</li>
                         <li class="mb-2"><i class="bi bi-telephone me-2"></i>+250785008063</li>
+                        <li class="mb-2"><i class="bi bi-telephone me-2"></i>0780335155</li>
                         <li class="mb-2"><i class="bi bi-envelope me-2"></i>cdshipping@gmail.com</li>
                         <li class="mb-2"><i class="bi bi-clock me-2"></i>Mon-Sunday: 9AM - 8PM</li>
                     </ul>
