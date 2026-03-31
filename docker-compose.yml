@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cdshipping_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: cdshipping_hub
+      MYSQL_USER: cdshipping_user
+      MYSQL_PASSWORD: cdshipping_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cdshipping_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cdshipping_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: cdshipping_hub
+      DB_USER: cdshipping_user
+      DB_PASS: cdshipping_pass
+      APP_ENV: development
+      SITE_PROTOCOL: http
+      SITE_DOMAIN: localhost:8000
+      SITE_PATH: /
+      INIT_DB: 1
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - php_session_data:/var/lib/php/sessions
+    networks:
+      - cdshipping_network
+
+volumes:
+  mysql_data:
+  php_session_data:
+
+networks:
+  cdshipping_network:
+    driver: bridge

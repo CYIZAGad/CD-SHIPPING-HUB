@@ -1,0 +1,227 @@
+/* ========================================
+   CD SHIPPING HUB - Admin Dashboard CSS
+   ======================================== */
+
+:root {
+    --sidebar-width: 250px;
+    --sidebar-collapsed: 70px;
+    --topbar-height: 60px;
+    --primary: #0d6efd;
+    --dark: #1a1d23;
+    --dark-lighter: #252830;
+    --transition: all 0.3s ease;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* ---- Layout ---- */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ---- Sidebar ---- */
+.admin-sidebar {
+    width: var(--sidebar-width);
+    background: var(--dark);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: var(--transition);
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.sidebar-nav {
+    padding: 15px 10px;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    gap: 12px;
+}
+
+.sidebar-nav .nav-link:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+
+.sidebar-nav .nav-link.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.1rem;
+    width: 22px;
+    text-align: center;
+}
+
+/* ---- Main Content ---- */
+.admin-main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: var(--transition);
+}
+
+/* ---- Top Bar ---- */
+.admin-topbar {
+    height: var(--topbar-height);
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* ---- Content Area ---- */
+.admin-content {
+    padding: 25px;
+}
+
+/* ---- Stat Cards ---- */
+.stat-card {
+    border-radius: 12px;
+    padding: 20px 25px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ---- Cards ---- */
+.card {
+    border-radius: 12px;
+}
+
+.card-header {
+    padding: 15px 20px;
+    font-weight: 600;
+}
+
+/* ---- Tables ---- */
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    border-bottom-width: 1px;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+/* ---- Badges ---- */
+.badge {
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+}
+
+/* ---- Buttons ---- */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* ---- Forms ---- */
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px 15px;
+}
+
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 991.98px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .admin-sidebar.show {
+        transform: translateX(0);
+    }
+
+    .admin-main {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .admin-content {
+        padding: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-card h3 {
+        font-size: 1.3rem;
+    }
+}
+
+/* ---- Chart Container ---- */
+canvas {
+    max-width: 100%;
+}
+
+/* ---- Scrollbar ---- */
+.admin-sidebar::-webkit-scrollbar { width: 4px; }
+.admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+.admin-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+/* ---- Animation ---- */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card { animation: fadeInUp 0.4s ease; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.2s; }
+.stat-card:nth-child(4) { animation-delay: 0.3s; }
