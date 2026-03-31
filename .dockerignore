@@ -6,7 +6,6 @@
 .dockerignore
 Dockerfile
 docker-compose.yml
-docker-entrypoint.sh
 README.md
 *.md
 .vscode
