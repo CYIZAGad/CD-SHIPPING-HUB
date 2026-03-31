@@ -33,9 +33,20 @@ define('IS_PRODUCTION', APP_ENV === 'production');
 
 // Site configuration - dynamically built from environment
 define('SITE_NAME', 'CD SHIPPING HUB');
-$siteProtocol = getenv('SITE_PROTOCOL') ?: ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http');
+// Detect protocol from environment or current request (accounting for proxies)
+$detectedProtocol = 'http';
+if (getenv('SITE_PROTOCOL')) {
+    $detectedProtocol = getenv('SITE_PROTOCOL');
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+    $detectedProtocol = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+} elseif (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    $detectedProtocol = 'https';
+} elseif (($_SERVER['SERVER_PORT'] ?? null) == 443) {
+    $detectedProtocol = 'https';
+}
+$siteProtocol = $detectedProtocol;
 $siteDomain = getenv('SITE_DOMAIN') ?: ($_SERVER['HTTP_HOST'] ?? 'localhost');
-$sitePath = getenv('SITE_PATH') ?: '/cdshipping';
+$sitePath = getenv('SITE_PATH') ?: '/';
 define('SITE_URL', $siteProtocol . '://' . $siteDomain . $sitePath);
 define('ADMIN_URL', SITE_URL . '/admin');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/products/');
@@ -45,7 +56,12 @@ define('UPLOAD_URL', SITE_URL . '/uploads/products/');
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Strict');
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['SERVER_PORT'] ?? null) == 443);
+
+// Detect HTTPS - check both direct HTTPS and X-Forwarded-Proto header (for reverse proxies like Render)
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+    || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
 ini_set('session.cookie_secure', $isHttps ? '1' : '0');
 
 if (PHP_VERSION_ID >= 70300) {
@@ -60,7 +76,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (PHP_SAPI !== 'cli' && getenv('APP_ENV') === 'production' && !$isHttps) {
+if (PHP_SAPI !== 'cli' && APP_ENV === 'production' && !$isHttps) {
     $host = $_SERVER['HTTP_HOST'] ?? '';
     $uri = $_SERVER['REQUEST_URI'] ?? '/';
     if (!empty($host)) {
