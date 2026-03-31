@@ -119,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Now include header AFTER all processing and potential redirects
 require_once './includes/header.php';
 ?>
-?>
 
 <div class="mb-3">
     <a href="products.php" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to Products</a>
