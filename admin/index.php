@@ -16,12 +16,12 @@ $recentOrders = $pdo->query("SELECT o.*, u.full_name FROM orders o JOIN users u 
 
 // Monthly revenue for chart (last 6 months)
 $monthlyRevenue = $pdo->query("
-    SELECT DATE_FORMAT(created_at, '%Y-%m') as month, 
+    SELECT TO_CHAR(created_at, 'YYYY-MM') as month, 
            SUM(CASE WHEN payment_status = 'confirmed' THEN total_amount ELSE 0 END) as revenue,
            COUNT(*) as order_count 
     FROM orders 
-    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-    GROUP BY DATE_FORMAT(created_at, '%Y-%m') 
+    WHERE created_at >= NOW() - INTERVAL '6 months'
+    GROUP BY TO_CHAR(created_at, 'YYYY-MM') 
     ORDER BY month
 ")->fetchAll();
 
