@@ -1,19 +1,20 @@
 #!/bin/bash
 set -e
 
-# Wait for database to be ready (if using docker-compose)
+# Wait for database to be ready (if using docker-compose or Render)
 if [ ! -z "$DB_HOST" ]; then
-    echo "Waiting for database at $DB_HOST:${DB_PORT:-3306}..."
+    DB_PORT=${DB_PORT:-5432}
+    echo "Waiting for PostgreSQL database at $DB_HOST:$DB_PORT..."
     for i in {1..30}; do
-        if nc -z $DB_HOST ${DB_PORT:-3306} 2>/dev/null; then
-            echo "Database is ready!"
+        if nc -z $DB_HOST $DB_PORT 2>/dev/null; then
+            echo "PostgreSQL database is ready!"
             break
         fi
         if [ $i -eq 30 ]; then
-            echo "Database startup failed after 30 attempts"
+            echo "PostgreSQL database startup failed after 30 attempts"
             exit 1
         fi
-        echo "Database is unavailable - sleeping"
+        echo "PostgreSQL database is unavailable - sleeping"
         sleep 1
     done
 fi

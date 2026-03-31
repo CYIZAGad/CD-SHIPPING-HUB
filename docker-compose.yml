@@ -2,19 +2,18 @@ version: '3.8'
 
 services:
   db:
-    image: mysql:8.0
+    image: postgres:15
     container_name: cdshipping_db
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: cdshipping_hub
-      MYSQL_USER: cdshipping_user
-      MYSQL_PASSWORD: cdshipping_pass
+      POSTGRES_DB: cd_shipping_hubdb
+      POSTGRES_USER: cd_shipping_hubdb_user
+      POSTGRES_PASSWORD: postgres_password
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U cd_shipping_hubdb_user -d cd_shipping_hubdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,10 +30,10 @@ services:
         condition: service_healthy
     environment:
       DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: cdshipping_hub
-      DB_USER: cdshipping_user
-      DB_PASS: cdshipping_pass
+      DB_PORT: 5432
+      DB_NAME: cd_shipping_hubdb
+      DB_USER: cd_shipping_hubdb_user
+      DB_PASS: postgres_password
       APP_ENV: development
       SITE_PROTOCOL: http
       SITE_DOMAIN: localhost:8000
@@ -49,7 +48,7 @@ services:
       - cdshipping_network
 
 volumes:
-  mysql_data:
+  postgres_data:
   php_session_data:
 
 networks:

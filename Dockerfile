@@ -6,10 +6,9 @@ WORKDIR /var/www/html
 
 # Install necessary PHP extensions and system dependencies
 RUN apt-get update && apt-get install -y \
-    mariadb-client-compat \
-    libmariadb-dev-compat \
+    postgresql-client \
     netcat-openbsd \
-    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install pdo_pgsql \
     && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache mod_rewrite for .htaccess
