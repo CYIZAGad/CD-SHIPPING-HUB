@@ -283,14 +283,14 @@ try {
     $stmt->execute([1, 'cyizagad69@gmail.com', '2026-03-30 18:31:00']);
     echo "✓ Inserted 1 newsletter subscriber\n";
 
-    // Reset sequences to match max IDs
-    execIgnoreErrors($pdo, "SELECT setval('users_id_seq', (SELECT MAX(id) FROM users))");
-    execIgnoreErrors($pdo, "SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories))");
-    execIgnoreErrors($pdo, "SELECT setval('products_id_seq', (SELECT MAX(id) FROM products))");
-    execIgnoreErrors($pdo, "SELECT setval('orders_id_seq', (SELECT MAX(id) FROM orders))");
-    execIgnoreErrors($pdo, "SELECT setval('order_items_id_seq', (SELECT MAX(id) FROM order_items))");
-    execIgnoreErrors($pdo, "SELECT setval('notifications_id_seq', (SELECT MAX(id) FROM notifications))");
-    execIgnoreErrors($pdo, "SELECT setval('newsletter_subscribers_id_seq', (SELECT MAX(id) FROM newsletter_subscribers))");
+    // Reset sequences to match max IDs (set to MAX + 1 so next insert uses correct ID)
+    execIgnoreErrors($pdo, "SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 0) + 1)");
+    execIgnoreErrors($pdo, "SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 0) + 1)");
+    execIgnoreErrors($pdo, "SELECT setval('products_id_seq', COALESCE((SELECT MAX(id) FROM products), 0) + 1)");
+    execIgnoreErrors($pdo, "SELECT setval('orders_id_seq', COALESCE((SELECT MAX(id) FROM orders), 0) + 1)");
+    execIgnoreErrors($pdo, "SELECT setval('order_items_id_seq', COALESCE((SELECT MAX(id) FROM order_items), 0) + 1)");
+    execIgnoreErrors($pdo, "SELECT setval('notifications_id_seq', COALESCE((SELECT MAX(id) FROM notifications), 0) + 1)");
+    execIgnoreErrors($pdo, "SELECT setval('newsletter_subscribers_id_seq', COALESCE((SELECT MAX(id) FROM newsletter_subscribers), 0) + 1)");
 
     echo "\n✅ Database setup completed successfully with all production data!\n";
     echo "\nAdmin Credentials:\n";
