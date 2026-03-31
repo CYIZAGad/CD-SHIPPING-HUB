@@ -6,8 +6,9 @@ WORKDIR /var/www/html
 
 # Install necessary PHP extensions and system dependencies
 RUN apt-get update && apt-get install -y \
-    mysql-client \
-    libmysqlclient-dev \
+    mariadb-client-compat \
+    libmariadb-dev-compat \
+    netcat-openbsd \
     && docker-php-ext-install pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 
