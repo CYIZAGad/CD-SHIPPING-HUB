@@ -14,7 +14,7 @@ $navCategories = $catStmt->fetchAll();
 // Notifications count
 $notifCount = 0;
 if (isLoggedIn()) {
-    $nStmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+    $nStmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = false");
     $nStmt->execute([$_SESSION['user_id']]);
     $notifCount = $nStmt->fetchColumn();
 }

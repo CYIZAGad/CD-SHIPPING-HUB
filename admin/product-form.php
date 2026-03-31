@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $oldPrice = !empty($_POST['old_price']) ? (float)$_POST['old_price'] : null;
         $stock = (int)($_POST['stock'] ?? 0);
         $status = in_array($_POST['status'] ?? '', ['active', 'inactive']) ? $_POST['status'] : 'active';
-        $featured = isset($_POST['featured']) ? 1 : 0;
+        $featured = isset($_POST['featured']) ? 't' : 'f';  // PostgreSQL boolean text format
         $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $name));
 
         if (empty($name)) $errors[] = 'Product name is required.';

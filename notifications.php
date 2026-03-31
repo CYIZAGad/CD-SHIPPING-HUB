@@ -6,7 +6,7 @@ $pdo = getDBConnection();
 
 // Mark all as read if requested
 if (isset($_GET['mark_read'])) {
-    $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute([$_SESSION['user_id']]);
+    $pdo->prepare("UPDATE notifications SET is_read = true WHERE user_id = ?")->execute([$_SESSION['user_id']]);
     redirect(SITE_URL . '/notifications.php');
 }
 
