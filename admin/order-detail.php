@@ -1,7 +1,14 @@
 <?php
-$pageTitle = 'Order Details';
-require_once 'includes/header.php';
+// Process all logic BEFORE including header (which outputs HTML)
+require_once 'config/database.php';
 
+// Check admin access FIRST
+if (!isAdmin()) {
+    setFlash('error', 'Access denied.');
+    redirect(SITE_URL . '/login.php');
+}
+
+$pageTitle = 'Order Details';
 $pdo = getDBConnection();
 
 $orderId = (int)($_GET['id'] ?? 0);
@@ -87,6 +94,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
         redirect(ADMIN_URL . "/order-detail.php?id=$orderId");
     }
 }
+
+// Now include header AFTER all processing and potential redirects
+require_once 'includes/header.php';
 
 $statusColors = ['pending' => 'warning', 'approved' => 'info', 'shipped' => 'primary', 'delivered' => 'success', 'cancelled' => 'danger'];
 $paymentColors = ['pending' => 'warning', 'confirmed' => 'success', 'rejected' => 'danger'];

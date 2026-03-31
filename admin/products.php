@@ -1,7 +1,14 @@
 <?php
-$pageTitle = 'Products';
-require_once 'includes/header.php';
+// Process all logic BEFORE including header (which outputs HTML)
+require_once 'config/database.php';
 
+// Check admin access FIRST
+if (!isAdmin()) {
+    setFlash('error', 'Access denied.');
+    redirect(SITE_URL . '/login.php');
+}
+
+$pageTitle = 'Products';
 $pdo = getDBConnection();
 
 // Handle delete (POST only)
@@ -18,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
     }
     redirect(ADMIN_URL . '/products.php');
 }
+
+// Now include header AFTER all processing and potential redirects
+require_once 'includes/header.php';
 
 // Get products
 $search = $_GET['search'] ?? '';

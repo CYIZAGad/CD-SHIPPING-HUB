@@ -1,7 +1,14 @@
 <?php
-$pageTitle = 'Product Form';
-require_once 'includes/header.php';
+// Process all logic BEFORE including header (which outputs HTML)
+require_once 'config/database.php';
 
+// Check admin access FIRST, before any output
+if (!isAdmin()) {
+    setFlash('error', 'Access denied.');
+    redirect(SITE_URL . '/login.php');
+}
+
+$pageTitle = 'Product Form';
 $pdo = getDBConnection();
 $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 
@@ -108,6 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Now include header AFTER all processing and potential redirects
+require_once 'includes/header.php';
+?>
 ?>
 
 <div class="mb-3">
