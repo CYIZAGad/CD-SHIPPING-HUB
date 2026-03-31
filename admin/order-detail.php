@@ -1,6 +1,6 @@
 <?php
 // Process all logic BEFORE including header (which outputs HTML)
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 // Check admin access FIRST
 if (!isAdmin()) {
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCSRFToken($_POST['csrf_token'
 }
 
 // Now include header AFTER all processing and potential redirects
-require_once 'includes/header.php';
+require_once './includes/header.php';
 
 $statusColors = ['pending' => 'warning', 'approved' => 'info', 'shipped' => 'primary', 'delivered' => 'success', 'cancelled' => 'danger'];
 $paymentColors = ['pending' => 'warning', 'confirmed' => 'success', 'rejected' => 'danger'];

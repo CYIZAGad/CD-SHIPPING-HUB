@@ -1,6 +1,6 @@
 <?php
 // Process all logic BEFORE including header (which outputs HTML)
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 // Check admin access FIRST, before any output
 if (!isAdmin()) {
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Now include header AFTER all processing and potential redirects
-require_once 'includes/header.php';
+require_once './includes/header.php';
 ?>
 ?>
 
