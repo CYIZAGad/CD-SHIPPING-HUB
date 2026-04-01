@@ -177,7 +177,7 @@ require_once './includes/header.php';
                         ?>
                         <div class="col-md-4">
                             <label class="form-label">Image <?= $i ?> <?= $i === 1 ? '(Main)' : '' ?></label>
-                            <?php if ($current && file_exists(UPLOAD_DIR . $current)): ?>
+                            <?php if ($current): ?>
                             <div class="mb-2"><img src="<?= UPLOAD_URL . $current ?>" class="img-thumbnail" style="max-height:120px" alt=""></div>
                             <?php endif; ?>
                             <input type="file" class="form-control" name="<?= $field ?>" accept="image/*">

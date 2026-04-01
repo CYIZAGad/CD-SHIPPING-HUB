@@ -19,14 +19,15 @@ $relStmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p JO
 $relStmt->execute([$product['category_id'], $product['id']]);
 $related = $relStmt->fetchAll();
 
-$imgSrc = (!empty($product['image']) && file_exists(__DIR__ . '/uploads/products/' . $product['image']))
+// Main image - trust database instead of file_exists check which may fail in containers
+$imgSrc = !empty($product['image'])
     ? UPLOAD_URL . $product['image']
     : 'https://placehold.co/600x450/e3f2fd/1976d2?text=' . urlencode($product['name']);
 
 $images = [$imgSrc];
 for ($i = 2; $i <= 3; $i++) {
     $key = "image$i";
-    if (!empty($product[$key]) && file_exists(__DIR__ . '/uploads/products/' . $product[$key])) {
+    if (!empty($product[$key])) {
         $images[] = UPLOAD_URL . $product[$key];
     }
 }

@@ -46,7 +46,7 @@ require_once 'includes/header.php';
                             </thead>
                             <tbody>
                                 <?php foreach ($cart as $item):
-                                    $imgSrc = (!empty($item['image']) && file_exists(__DIR__ . '/uploads/products/' . $item['image']))
+                                    $imgSrc = !empty($item['image'])
                                         ? UPLOAD_URL . $item['image']
                                         : 'https://placehold.co/80x80/e3f2fd/1976d2?text=IMG';
                                     $subtotal = $item['price'] * $item['qty'];
