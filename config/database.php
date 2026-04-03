@@ -90,14 +90,15 @@ function getDBConnection() {
     static $pdo = null;
     if ($pdo === null) {
         try {
-            $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME;
+            // Use MySQL/MariaDB since the schema is defined for MySQL
+            $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
             $pdo = new PDO($dsn, DB_USER, DB_PASS, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
         } catch (PDOException $e) {
-            die("Database connection failed. Please ensure PostgreSQL database is configured correctly: " . $e->getMessage());
+            die("Database connection failed. Please ensure MySQL/MariaDB database is configured correctly: " . $e->getMessage());
         }
     }
     return $pdo;
@@ -262,9 +263,23 @@ function isAdmin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }
 
-// Redirect helper
+// Redirect helper - Prevent open redirect attacks
 function redirect($url) {
-    header("Location: $url");
+    // Only allow redirects to URLs starting with SITE_URL or absolute paths
+    if (!empty($url)) {
+        $parsed = parse_url($url);
+        $baseHost = parse_url(SITE_URL, PHP_URL_HOST);
+        
+        // Allow relative paths and same-host redirects
+        if ((isset($parsed['host']) && $parsed['host'] === $baseHost) || 
+            (empty($parsed['host']) && strpos($url, '/') === 0)) {
+            header("Location: $url");
+            exit;
+        }
+    }
+    
+    // Fallback to site URL if redirect is invalid
+    header("Location: " . SITE_URL);
     exit;
 }
 

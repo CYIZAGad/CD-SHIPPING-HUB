@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Valid email is required.';
         } elseif (empty($errors)) {
             $pdo = getDBConnection();
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt = $pd o->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
 

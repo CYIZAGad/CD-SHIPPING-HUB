@@ -21,14 +21,14 @@ $related = $relStmt->fetchAll();
 
 // Main image - trust database instead of file_exists check which may fail in containers
 $imgSrc = !empty($product['image'])
-    ? UPLOAD_URL . $product['image']
+    ? UPLOAD_URL . $product['image'] . '?t=' . time()
     : 'https://placehold.co/600x450/e3f2fd/1976d2?text=' . urlencode($product['name']);
 
 $images = [$imgSrc];
 for ($i = 2; $i <= 3; $i++) {
     $key = "image$i";
     if (!empty($product[$key])) {
-        $images[] = UPLOAD_URL . $product[$key];
+        $images[] = UPLOAD_URL . $product[$key] . '?t=' . time();
     }
 }
 

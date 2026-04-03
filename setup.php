@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Setup Script - CD SHIPPING HUB
- * PostgreSQL Version with Production Data
+ * MySQL/MariaDB Version with Production Data
  * Run this once to create the database tables and populate with production data
  */
 
@@ -23,9 +23,9 @@ if (file_exists($envFile)) {
 
 // Get database configuration from environment
 $host = getenv('DB_HOST') ?: 'localhost';
-$port = getenv('DB_PORT') ?: '5432';
-$dbName = getenv('DB_NAME') ?: 'cd_shipping_hubdb';
-$user = getenv('DB_USER') ?: 'postgres';
+$port = getenv('DB_PORT') ?: '3306';
+$dbName = getenv('DB_NAME') ?: 'cdshipping_hub';
+$user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASS') ?: '';
 
 function execIgnoreErrors(PDO $pdo, $sql) {
@@ -37,168 +37,125 @@ function execIgnoreErrors(PDO $pdo, $sql) {
 }
 
 try {
-    // Connect to PostgreSQL
-    $dsn = "pgsql:host=$host;port=$port;dbname=$dbName";
+    // Connect to MySQL/MariaDB
+    $dsn = "mysql:host=$host;port=$port;dbname=$dbName;charset=utf8mb4";
     $pdo = new PDO($dsn, $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    echo "Connected to PostgreSQL database successfully.\n";
+    echo "✓ Connected to MySQL/MariaDB database successfully.\n";
 
     // Users table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        full_name VARCHAR(100) NOT NULL,
-        email VARCHAR(150) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
-        phone VARCHAR(20) NOT NULL,
-        address TEXT NOT NULL,
-        role VARCHAR(20) DEFAULT 'client',
-        reset_token VARCHAR(100) DEFAULT NULL,
-        reset_expires TIMESTAMP DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
-
-    // Create trigger to update updated_at on users
-    execIgnoreErrors($pdo, "CREATE OR REPLACE FUNCTION update_users_timestamp() 
-        RETURNS TRIGGER AS \$\$
-        BEGIN
-            NEW.updated_at = CURRENT_TIMESTAMP;
-            RETURN NEW;
-        END;
-        \$\$ LANGUAGE plpgsql");
-    
-    execIgnoreErrors($pdo, "DROP TRIGGER IF EXISTS users_update_timestamp ON users");
-    execIgnoreErrors($pdo, "CREATE TRIGGER users_update_timestamp 
-        BEFORE UPDATE ON users
-        FOR EACH ROW
-        EXECUTE FUNCTION update_users_timestamp()");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `users` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `full_name` VARCHAR(100) NOT NULL,
+        `email` VARCHAR(150) NOT NULL UNIQUE,
+        `password` VARCHAR(255) NOT NULL,
+        `phone` VARCHAR(20) NOT NULL,
+        `address` TEXT NOT NULL,
+        `role` ENUM('client','admin') DEFAULT 'client',
+        `reset_token` VARCHAR(100) DEFAULT NULL,
+        `reset_expires` DATETIME DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY `idx_users_role` (`role`),
+        KEY `idx_users_email` (`email`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Categories table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        slug VARCHAR(100) NOT NULL UNIQUE,
-        icon VARCHAR(50) DEFAULT 'bi-grid',
-        image VARCHAR(255) DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `categories` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `name` VARCHAR(100) NOT NULL,
+        `slug` VARCHAR(100) NOT NULL UNIQUE,
+        `icon` VARCHAR(50) DEFAULT 'bi-grid',
+        `image` VARCHAR(255) DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `idx_categories_slug` (`slug`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Products table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS products (
-        id SERIAL PRIMARY KEY,
-        category_id INTEGER NOT NULL,
-        name VARCHAR(200) NOT NULL,
-        slug VARCHAR(200) NOT NULL UNIQUE,
-        description TEXT,
-        specifications TEXT,
-        price DECIMAL(10,2) NOT NULL,
-        old_price DECIMAL(10,2) DEFAULT NULL,
-        stock INTEGER DEFAULT 0,
-        image VARCHAR(255) DEFAULT NULL,
-        image2 VARCHAR(255) DEFAULT NULL,
-        image3 VARCHAR(255) DEFAULT NULL,
-        featured BOOLEAN DEFAULT FALSE,
-        status VARCHAR(20) DEFAULT 'active',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
-    )");
-
-    // Create trigger to update updated_at on products
-    execIgnoreErrors($pdo, "CREATE OR REPLACE FUNCTION update_products_timestamp() 
-        RETURNS TRIGGER AS \$\$
-        BEGIN
-            NEW.updated_at = CURRENT_TIMESTAMP;
-            RETURN NEW;
-        END;
-        \$\$ LANGUAGE plpgsql");
-    
-    execIgnoreErrors($pdo, "DROP TRIGGER IF EXISTS products_update_timestamp ON products");
-    execIgnoreErrors($pdo, "CREATE TRIGGER products_update_timestamp 
-        BEFORE UPDATE ON products
-        FOR EACH ROW
-        EXECUTE FUNCTION update_products_timestamp()");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `products` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `category_id` INT NOT NULL,
+        `name` VARCHAR(200) NOT NULL,
+        `slug` VARCHAR(200) NOT NULL UNIQUE,
+        `description` TEXT,
+        `specifications` TEXT,
+        `price` DECIMAL(10,2) NOT NULL,
+        `old_price` DECIMAL(10,2) DEFAULT NULL,
+        `stock` INT DEFAULT 0,
+        `image` VARCHAR(255) DEFAULT NULL,
+        `image2` VARCHAR(255) DEFAULT NULL,
+        `image3` VARCHAR(255) DEFAULT NULL,
+        `featured` TINYINT(1) DEFAULT 0,
+        `status` ENUM('active','inactive') DEFAULT 'active',
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`) ON DELETE CASCADE,
+        KEY `idx_products_category_status` (`category_id`, `status`),
+        UNIQUE KEY `idx_products_slug` (`slug`),
+        KEY `idx_products_created_at` (`created_at`),
+        KEY `idx_products_featured` (`featured`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Orders table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS orders (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        order_number VARCHAR(20) NOT NULL UNIQUE,
-        total_amount DECIMAL(10,2) NOT NULL,
-        shipping_address TEXT NOT NULL,
-        phone VARCHAR(20) NOT NULL,
-        payment_status VARCHAR(20) DEFAULT 'pending',
-        order_status VARCHAR(20) DEFAULT 'pending',
-        payment_reference VARCHAR(100) DEFAULT NULL,
-        notes TEXT DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )");
-
-    // Create trigger to update updated_at on orders
-    execIgnoreErrors($pdo, "CREATE OR REPLACE FUNCTION update_orders_timestamp() 
-        RETURNS TRIGGER AS \$\$
-        BEGIN
-            NEW.updated_at = CURRENT_TIMESTAMP;
-            RETURN NEW;
-        END;
-        \$\$ LANGUAGE plpgsql");
-    
-    execIgnoreErrors($pdo, "DROP TRIGGER IF EXISTS orders_update_timestamp ON orders");
-    execIgnoreErrors($pdo, "CREATE TRIGGER orders_update_timestamp 
-        BEFORE UPDATE ON orders
-        FOR EACH ROW
-        EXECUTE FUNCTION update_orders_timestamp()");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `orders` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `order_number` VARCHAR(20) NOT NULL UNIQUE,
+        `total_amount` DECIMAL(10,2) NOT NULL,
+        `shipping_address` TEXT NOT NULL,
+        `phone` VARCHAR(20) NOT NULL,
+        `payment_status` ENUM('pending','confirmed','rejected') DEFAULT 'pending',
+        `order_status` ENUM('pending','approved','shipped','delivered','cancelled') DEFAULT 'pending',
+        `payment_reference` VARCHAR(100) DEFAULT NULL,
+        `notes` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+        UNIQUE KEY `idx_orders_order_number` (`order_number`),
+        KEY `idx_orders_user_created` (`user_id`, `created_at`),
+        KEY `idx_orders_payment_status` (`payment_status`),
+        KEY `idx_orders_order_status` (`order_status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Order items table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS order_items (
-        id SERIAL PRIMARY KEY,
-        order_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
-        product_name VARCHAR(200) NOT NULL,
-        price DECIMAL(10,2) NOT NULL,
-        quantity INTEGER NOT NULL,
-        subtotal DECIMAL(10,2) NOT NULL,
-        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    )");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `order_items` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `order_id` INT NOT NULL,
+        `product_id` INT NOT NULL,
+        `product_name` VARCHAR(200) NOT NULL,
+        `price` DECIMAL(10,2) NOT NULL,
+        `quantity` INT NOT NULL,
+        `subtotal` DECIMAL(10,2) NOT NULL,
+        FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE,
+        KEY `idx_order_items_order_id` (`order_id`),
+        KEY `idx_order_items_product_id` (`product_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Notifications table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        title VARCHAR(200) NOT NULL,
-        message TEXT NOT NULL,
-        is_read BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `notifications` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `title` VARCHAR(200) NOT NULL,
+        `message` TEXT NOT NULL,
+        `is_read` TINYINT(1) DEFAULT 0,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+        KEY `idx_notifications_user_read` (`user_id`, `is_read`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     // Newsletter subscribers table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-        id SERIAL PRIMARY KEY,
-        email VARCHAR(150) NOT NULL UNIQUE,
-        subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `newsletter_subscribers` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `email` VARCHAR(150) NOT NULL UNIQUE,
+        `subscribed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `idx_newsletter_email` (`email`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-    // Create indexes for common lookups
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_products_category_status ON products(category_id, status)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_products_created_at ON products(created_at)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_orders_user_created ON orders(user_id, created_at)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_orders_order_status ON orders(order_status)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, is_read)");
-    execIgnoreErrors($pdo, "CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter_subscribers(email)");
-
-    echo "\n📥 Inserting production data from exported database...\n";
+    echo "✓ Created all database tables\n\n";
 
     // Insert production users
     $stmt = $pdo->prepare("INSERT INTO users (id, full_name, email, password, phone, address, role, created_at, updated_at) 
@@ -208,8 +165,8 @@ try {
     echo "✓ Inserted 2 users\n";
 
     // Insert production categories
-    $stmt = $pdo->prepare("INSERT INTO categories (id, name, slug, icon, created_at) 
-        VALUES (?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING");
+    $stmt = $pdo->prepare("INSERT INTO `categories` (id, name, slug, icon, created_at) 
+        VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id=id");
     $categories = [
         [1, 'Cars', 'cars', 'bi-car-front', '2026-03-14 15:41:50'],
         [2, 'Laptops', 'laptops', 'bi-laptop', '2026-03-14 15:41:50'],
@@ -223,9 +180,9 @@ try {
     }
     echo "✓ Inserted 6 categories\n";
 
-    // Insert production products (all 19)
-    $stmt = $pdo->prepare("INSERT INTO products (id, category_id, name, slug, description, specifications, price, old_price, stock, image, image2, image3, featured, status, created_at, updated_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING");
+    // Insert production products
+    $stmt = $pdo->prepare("INSERT INTO `products` (id, category_id, name, slug, description, specifications, price, old_price, stock, image, image2, image3, featured, status, created_at, updated_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id=id");
     
     $products = [
         [1, 1, 'Toyota Camry 2024', 'toyota-camry-2024', 'Brand new Toyota Camry 2024 model with advanced safety features, hybrid engine, and premium interior.', 'Engine: 2.5L Hybrid|Power: 208 HP|Transmission: CVT|Fuel: Hybrid|Color: Pearl White', 35000.00, 38000.00, 4, 'toyota-camry-2024-image-1773505125.webp', 'toyota-camry-2024-image2-1773505125.jpg', 'toyota-camry-2024-image3-1773505125.jpg', true, 'active', '2026-03-14 15:41:50', '2026-03-15 11:46:35'],
@@ -254,23 +211,23 @@ try {
     echo "✓ Inserted 19 products\n";
 
     // Insert production orders
-    $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, order_number, total_amount, shipping_address, phone, payment_status, order_status, payment_reference, created_at, updated_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING");
+    $stmt = $pdo->prepare("INSERT INTO `orders` (id, user_id, order_number, total_amount, shipping_address, phone, payment_status, order_status, payment_reference, created_at, updated_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id=id");
     $stmt->execute([1, 3, 'CD202603146286B8', 175000.00, 'kigali', '+250728178335', 'pending', 'pending', '34455', '2026-03-14 16:34:38', '2026-03-14 16:34:38']);
     $stmt->execute([2, 1, 'CD202603158E87D5', 37999.00, 'Admin Office', '+1234567890', 'confirmed', 'delivered', '34455', '2026-03-15 11:45:27', '2026-03-15 11:46:45']);
     echo "✓ Inserted 2 orders\n";
 
     // Insert production order items
-    $stmt = $pdo->prepare("INSERT INTO order_items (id, order_id, product_id, product_name, price, quantity, subtotal) 
-        VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING");
+    $stmt = $pdo->prepare("INSERT INTO `order_items` (id, order_id, product_id, product_name, price, quantity, subtotal) 
+        VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id=id");
     $stmt->execute([1, 1, 1, 'Toyota Camry 2024', 35000.00, 5, 175000.00]);
     $stmt->execute([2, 2, 1, 'Toyota Camry 2024', 35000.00, 1, 35000.00]);
     $stmt->execute([3, 2, 5, 'Gaming Desktop RTX 4080', 2999.00, 1, 2999.00]);
     echo "✓ Inserted 3 order items\n";
 
     // Insert production notifications
-    $stmt = $pdo->prepare("INSERT INTO notifications (id, user_id, title, message, is_read, created_at) 
-        VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING");
+    $stmt = $pdo->prepare("INSERT INTO `notifications` (id, user_id, title, message, is_read, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE id=id");
     $stmt->execute([1, 3, 'Order Placed Successfully', 'Your order #CD202603146286B8 has been placed. Total: $175,000.00. We will process your payment shortly.', false, '2026-03-14 16:34:38']);
     $stmt->execute([2, 1, 'Order Placed Successfully', 'Your order #CD202603158E87D5 has been placed. Total: $37,999.00. We will process your payment shortly.', false, '2026-03-15 11:45:27']);
     $stmt->execute([3, 1, 'Payment Confirmed', 'Your payment for order #CD202603158E87D5 has been confirmed!', false, '2026-03-15 11:46:35']);
@@ -278,26 +235,15 @@ try {
     echo "✓ Inserted 4 notifications\n";
 
     // Insert newsletter subscribers
-    $stmt = $pdo->prepare("INSERT INTO newsletter_subscribers (id, email, subscribed_at) 
-        VALUES (?, ?, ?) ON CONFLICT (id) DO NOTHING");
+    $stmt = $pdo->prepare("INSERT INTO `newsletter_subscribers` (id, email, subscribed_at) 
+        VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id=id");
     $stmt->execute([1, 'cyizagad69@gmail.com', '2026-03-30 18:31:00']);
-    echo "✓ Inserted 1 newsletter subscriber\n";
-
-    // Reset sequences to match max IDs (set to MAX + 1 so next insert uses correct ID)
-    execIgnoreErrors($pdo, "SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 0) + 1)");
-    execIgnoreErrors($pdo, "SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 0) + 1)");
-    execIgnoreErrors($pdo, "SELECT setval('products_id_seq', COALESCE((SELECT MAX(id) FROM products), 0) + 1)");
-    execIgnoreErrors($pdo, "SELECT setval('orders_id_seq', COALESCE((SELECT MAX(id) FROM orders), 0) + 1)");
-    execIgnoreErrors($pdo, "SELECT setval('order_items_id_seq', COALESCE((SELECT MAX(id) FROM order_items), 0) + 1)");
-    execIgnoreErrors($pdo, "SELECT setval('notifications_id_seq', COALESCE((SELECT MAX(id) FROM notifications), 0) + 1)");
-    execIgnoreErrors($pdo, "SELECT setval('newsletter_subscribers_id_seq', COALESCE((SELECT MAX(id) FROM newsletter_subscribers), 0) + 1)");
-
     echo "\n✅ Database setup completed successfully with all production data!\n";
-    echo "\nAdmin Credentials:\n";
+    echo "\n🔐 Admin Credentials:\n";
     echo "  Email: admin@cdshipping.com\n";
     echo "  Password: admin123\n";
-    echo "\n⚠️  WARNING: Change admin password immediately in production!\n";
+    echo "\n⚠️  WARNING: Change admin password immediately in production!\n";;
 
 } catch (PDOException $e) {
-    die("PostgreSQL Setup Error: " . htmlspecialchars($e->getMessage()));
+    die("MySQL Setup Error: " . htmlspecialchars($e->getMessage()));
 }

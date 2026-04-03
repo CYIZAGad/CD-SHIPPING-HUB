@@ -3,7 +3,7 @@
 // Trust the database: if image field is not empty, use it. If empty, use placeholder.
 // Avoid file_exists check as it may not work reliably in containerized environments (e.g., Render)
 $imgSrc = !empty($product['image'])
-    ? UPLOAD_URL . $product['image']
+    ? UPLOAD_URL . $product['image'] . '?t=' . time()  // Cache busting
     : 'https://placehold.co/400x300/e3f2fd/1976d2?text=' . urlencode($product['name']);
 $inStock = $product['stock'] > 0;
 ?>
@@ -14,7 +14,7 @@ $inStock = $product['stock'] > 0;
     </div>
     <?php endif; ?>
     <a href="product.php?slug=<?= $product['slug'] ?>">
-        <img src="<?= $imgSrc ?>" class="card-img-top product-img" alt="<?= sanitize($product['name']) ?>">
+        <img src="<?= $imgSrc ?>" class="card-img-top product-img" alt="<?= sanitize($product['name']) ?>" loading="lazy">
     </a>
     <div class="card-body d-flex flex-column">
         <small class="text-muted mb-1"><?= sanitize($product['category_name']) ?></small>

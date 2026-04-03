@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $oldPrice = !empty($_POST['old_price']) ? (float)$_POST['old_price'] : null;
         $stock = (int)($_POST['stock'] ?? 0);
         $status = in_array($_POST['status'] ?? '', ['active', 'inactive']) ? $_POST['status'] : 'active';
-        $featured = isset($_POST['featured']) ? 't' : 'f';  // PostgreSQL boolean text format
+        $featured = isset($_POST['featured']) ? 1 : 0;  // MySQL boolean (0 or 1)
         $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $name));
 
         if (empty($name)) $errors[] = 'Product name is required.';
@@ -100,11 +100,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$categoryId, $name, $slug, $description, $specifications, $price, $oldPrice, $stock, $imageNames['image'], $imageNames['image2'], $imageNames['image3'], $featured, $status, $product['id']]);
                 setFlash('success', 'Product updated successfully!');
             } else {
-                // Check slug uniqueness
-                $check = $pdo->prepare("SELECT id FROM products WHERE slug = ?");
-                $check->execute([$slug]);
-                if ($check->fetch()) {
-                    $slug .= '-' . time();
+                // Ensure slug is unique - add suffix if needed
+                $originalSlug = $slug;
+                $counter = 1;
+                while (true) {
+                    $check = $pdo->prepare("SELECT id FROM products WHERE slug = ?");
+                    $check->execute([$slug]);
+                    if (!$check->fetch()) {
+                        break; // Slug is unique
+                    }
+                    $slug = $originalSlug . '-' . $counter;
+                    $counter++;
                 }
 
                 $stmt = $pdo->prepare("INSERT INTO products (category_id, name, slug, description, specifications, price, old_price, stock, image, image2, image3, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
