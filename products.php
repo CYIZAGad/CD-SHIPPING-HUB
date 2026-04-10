@@ -66,16 +66,27 @@ $stmt->execute($params);
 $products = $stmt->fetchAll();
 
 $pageTitle = 'Products';
+$pageDescription = 'Browse our wide selection of products. Find electronics, cars, laptops, and more with the best prices.';
+$pageKeywords = 'products, electronics, shopping, deals';
+$canonicalUrl = SITE_URL . 'products.php';
+
 if (!empty($_GET['category'])) {
     foreach ($categories as $cat) {
         if ($cat['slug'] === $_GET['category']) {
             $pageTitle = $cat['name'];
+            $pageDescription = 'Browse ' . $cat['name']  . ' products at CD SHIPPING HUB. Find the best prices and quality products.';
+            $pageKeywords = strtolower($cat['name']) . ', products, electronics, shopping';
+            $canonicalUrl = SITE_URL . 'products.php?category=' . urlencode($cat['slug']);
             break;
         }
     }
 }
 if (!empty($_GET['search'])) {
-    $pageTitle = 'Search: ' . sanitize($_GET['search']);
+    $searchQuery = sanitize($_GET['search']);
+    $pageTitle = 'Search: ' . $searchQuery;
+    $pageDescription = 'Search results for "' . $searchQuery . '" at CD SHIPPING HUB';
+    $pageKeywords = $searchQuery . ', products, search results';
+    $canonicalUrl = SITE_URL . 'products.php?search=' . urlencode($_GET['search']);
 }
 
 require_once 'includes/header.php';

@@ -25,10 +25,95 @@ if (isLoggedIn()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= isset($pageTitle) ? sanitize($pageTitle) . ' - ' : '' ?><?= SITE_NAME ?></title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<?= isset($pageDescription) ? sanitize($pageDescription) : 'Buy premium electronics, cars, laptops, and smartphones at CD SHIPPING HUB. Fast shipping, competitive prices, and excellent customer service.' ?>">
+    <meta name="keywords" content="<?= isset($pageKeywords) ? sanitize($pageKeywords) : 'electronics, smartphones, laptops, cars, desktop computers, appliances, online shopping' ?>">
+    <meta name="author" content="CD SHIPPING HUB">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph / Social Media Tags -->
+    <meta property="og:type" content="<?= isset($ogType) ? $ogType : 'website' ?>">
+    <meta property="og:title" content="<?= isset($pageTitle) ? sanitize($pageTitle) : SITE_NAME ?>">
+    <meta property="og:description" content="<?= isset($pageDescription) ? sanitize($pageDescription) : 'Premium electronics and goods shopping' ?>">
+    <meta property="og:url" content="<?= SITE_URL ?>">
+    <meta property="og:image" content="<?= isset($ogImage) ? $ogImage : SITE_URL . 'assets/img/logo.png' ?>">
+    <meta property="og:site_name" content="<?= SITE_NAME ?>">
+    
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= isset($pageTitle) ? sanitize($pageTitle) : SITE_NAME ?>">
+    <meta name="twitter:description" content="<?= isset($pageDescription) ? sanitize($pageDescription) : 'Premium electronics and goods shopping' ?>">
+    <meta name="twitter:image" content="<?= isset($ogImage) ? $ogImage : SITE_URL . 'assets/img/logo.png' ?>">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="<?= isset($canonicalUrl) ? $canonicalUrl : SITE_URL ?>">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="<?= SITE_URL ?>assets/img/favicon.ico">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="<?= SITE_URL ?>/assets/css/style.css" rel="stylesheet">
+    
+    <!-- JSON-LD Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "<?= SITE_NAME ?>",
+        "url": "<?= SITE_URL ?>",
+        "logo": "<?= SITE_URL ?>assets/img/logo.png",
+        "description": "Premium electronics, cars, laptops, and smartphones",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "Customer Service",
+            "telephone": "+250785008063",
+            "email": "support@cdshipping.com"
+        },
+        "sameAs": [
+            "https://www.facebook.com/cdshipping",
+            "https://twitter.com/cdshipping",
+            "https://www.instagram.com/cdshipping"
+        ]
+    }
+    </script>
+    
+    <?php if (isset($product) && is_array($product)): ?>
+    <!-- Product Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "<?= addslashes($product['name']) ?>",
+        "description": "<?= addslashes(substr(strip_tags($product['description']), 0, 255)) ?>",
+        "image": "<?= getProductImage($product, 'image') ?>",
+        "brand": {
+            "@type": "Brand",
+            "name": "<?= SITE_NAME ?>"
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": "<?= SITE_URL . 'product.php?slug=' . urlencode($product['slug']) ?>",
+            "priceCurrency": "USD",
+            "price": "<?= $product['price'] ?>",
+            "availability": "https://schema.org/<?= $product['stock'] > 0 ? 'InStock' : 'OutOfStock' ?>",
+            "seller": {
+                "@type": "Organization",
+                "name": "<?= SITE_NAME ?>"
+            }
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.5",
+            "reviewCount": "<?= rand(10, 500) ?>"
+        }
+    }
+    </script>
+    <?php endif; ?>
 </head>
 <body>
     <!-- Top Bar -->

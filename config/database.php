@@ -287,3 +287,25 @@ function redirect($url) {
 function formatPrice($price) {
     return '$' . number_format((float)$price, 2);
 }
+
+// Get image: from filesystem first, fallback to database base64 (for ephemeral storage like Render)
+function getProductImage($product, $imageField = 'image') {
+    $fileFieldName = $imageField; // e.g. 'image', 'image2', 'image3'
+    $base64FieldName = $imageField . '_base64'; // e.g. 'image_base64', 'image2_base64'
+    
+    // Try filesystem first
+    if (!empty($product[$fileFieldName])) {
+        $filePath = UPLOAD_DIR . $product[$fileFieldName];
+        if (file_exists($filePath)) {
+            return UPLOAD_URL . $product[$fileFieldName] . '?t=' . time(); // Cache busting
+        }
+    }
+    
+    // Fall back to database base64 if file doesn't exist
+    if (!empty($product[$base64FieldName])) {
+        return $product[$base64FieldName]; // Returns data URL like: data:image/jpeg;base64,...
+    }
+    
+    // If no image found, return placeholder
+    return 'https://placehold.co/400x300/e3f2fd/1976d2?text=' . urlencode($product['name'] ?? 'Product');
+}

@@ -19,16 +19,15 @@ $relStmt = $pdo->prepare("SELECT p.*, c.name as category_name FROM products p JO
 $relStmt->execute([$product['category_id'], $product['id']]);
 $related = $relStmt->fetchAll();
 
-// Main image - trust database instead of file_exists check which may fail in containers
-$imgSrc = !empty($product['image'])
-    ? UPLOAD_URL . $product['image'] . '?t=' . time()
-    : 'https://placehold.co/600x450/e3f2fd/1976d2?text=' . urlencode($product['name']);
+// Main image - use helper that gets from filesystem or database
+$imgSrc = getProductImage($product, 'image');
 
+// Build image gallery - try filesystem first, fallback to database
 $images = [$imgSrc];
 for ($i = 2; $i <= 3; $i++) {
     $key = "image$i";
-    if (!empty($product[$key])) {
-        $images[] = UPLOAD_URL . $product[$key] . '?t=' . time();
+    if (!empty($product[$key]) || !empty($product[$key . '_base64'])) {
+        $images[] = getProductImage($product, $key);
     }
 }
 
@@ -43,6 +42,14 @@ if (!empty($product['specifications'])) {
 }
 
 $pageTitle = $product['name'];
+
+// SEO Meta Tags
+$pageDescription = substr(strip_tags($product['description']), 0, 160) ?: $product['name'] . ' - Premium quality product at CD SHIPPING HUB';
+$pageKeywords = $product['name'] . ', ' . $product['category_name'] . ', ' . (isset($specs[0]) ? implode(', ', array_slice(array_keys($specs), 0, 3)) : 'shopping');
+$canonicalUrl = SITE_URL . 'product.php?slug=' . urlencode($product['slug']);
+$ogImage = getProductImage($product, 'image'); // Use actual product image
+$ogType = 'product';
+
 require_once 'includes/header.php';
 ?>
 

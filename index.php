@@ -49,7 +49,12 @@ $featured = $pdo->query("SELECT p.*, c.name as category_name FROM products p JOI
 // Get latest products
 $latest = $pdo->query("SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.status = 'active' ORDER BY p.created_at DESC LIMIT 8")->fetchAll();
 
+// SEO Meta Tags for Homepage
 $pageTitle = 'Home';
+$pageDescription = 'Shop the latest electronics, cars, laptops, and smartphones with fast shipping and competitive prices. Discover the best deals at CD SHIPPING HUB.';
+$pageKeywords = 'electronics, smartphones, laptops, cars, desktop computers, appliances, best deals, online shopping';
+$canonicalUrl = SITE_URL;
+$ogType = 'website';
 require_once 'includes/header.php';
 ?>
 

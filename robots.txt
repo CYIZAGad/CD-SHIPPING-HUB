@@ -1,0 +1,42 @@
+# CD SHIPPING HUB - Robots.txt for SEO
+# Allows search engines to crawl the site properly
+
+User-agent: *
+Allow: /
+Allow: /products.php
+Allow: /product.php
+Allow: /login.php
+Allow: /register.php
+Allow: /assets/
+
+# Disallow paths that shouldn't be indexed
+Disallow: /admin/
+Disallow: /config/
+Disallow: /includes/
+Disallow: /uploads/
+Disallow: /*?*sort=
+Disallow: /*?*page=
+Disallow: /logout.php
+Disallow: /cart-action.php
+Disallow: /checkout.php
+
+# Sitemap location
+Sitemap: https://cd-shipping-hub.com/sitemap.xml
+# Fallback for onrender URL
+Sitemap: https://cd-shipping-hub.onrender.com/sitemap.xml
+
+# Crawl delay to prevent server overload
+Crawl-delay: 1
+Request-rate: 30/1m
+
+# Allow Google bot to crawl faster
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+Request-rate: 100/1m
+
+# Allow Bing bot
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+Request-rate: 30/1m

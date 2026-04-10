@@ -49,9 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle image uploads
         $imageFields = ['image', 'image2', 'image3'];
         $imageNames = [];
+        $imageBase64 = [];
         
         foreach ($imageFields as $field) {
             $imageNames[$field] = $isEdit ? $product[$field] : null;
+            $imageBase64[$field] = $isEdit ? $product[$field . '_base64'] : null;
 
             if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
                 $file = $_FILES[$field];
@@ -82,11 +84,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     if (move_uploaded_file($file['tmp_name'], UPLOAD_DIR . $newName)) {
-                        // Remove old image
+                        // Remove old image file
                         if ($isEdit && !empty($product[$field]) && file_exists(UPLOAD_DIR . $product[$field])) {
                             unlink(UPLOAD_DIR . $product[$field]);
                         }
+                        
+                        // Store image filename
                         $imageNames[$field] = $newName;
+                        
+                        // ALSO store base64 copy in database (for ephemeral storage like Render)
+                        $imageData = file_get_contents(UPLOAD_DIR . $newName);
+                        $imageBase64[$field] = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
                     } else {
                         $errors[] = "Failed to upload $field.";
                     }
@@ -96,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             if ($isEdit) {
-                $stmt = $pdo->prepare("UPDATE products SET category_id=?, name=?, slug=?, description=?, specifications=?, price=?, old_price=?, stock=?, image=?, image2=?, image3=?, featured=?, status=? WHERE id=?");
-                $stmt->execute([$categoryId, $name, $slug, $description, $specifications, $price, $oldPrice, $stock, $imageNames['image'], $imageNames['image2'], $imageNames['image3'], $featured, $status, $product['id']]);
+                $stmt = $pdo->prepare("UPDATE products SET category_id=?, name=?, slug=?, description=?, specifications=?, price=?, old_price=?, stock=?, image=?, image2=?, image3=?, image_base64=?, image2_base64=?, image3_base64=?, featured=?, status=? WHERE id=?");
+                $stmt->execute([$categoryId, $name, $slug, $description, $specifications, $price, $oldPrice, $stock, $imageNames['image'], $imageNames['image2'], $imageNames['image3'], $imageBase64['image'], $imageBase64['image2'], $imageBase64['image3'], $featured, $status, $product['id']]);
                 setFlash('success', 'Product updated successfully!');
             } else {
                 // Ensure slug is unique - add suffix if needed
@@ -113,8 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $counter++;
                 }
 
-                $stmt = $pdo->prepare("INSERT INTO products (category_id, name, slug, description, specifications, price, old_price, stock, image, image2, image3, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$categoryId, $name, $slug, $description, $specifications, $price, $oldPrice, $stock, $imageNames['image'], $imageNames['image2'], $imageNames['image3'], $featured, $status]);
+                $stmt = $pdo->prepare("INSERT INTO products (category_id, name, slug, description, specifications, price, old_price, stock, image, image2, image3, image_base64, image2_base64, image3_base64, featured, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$categoryId, $name, $slug, $description, $specifications, $price, $oldPrice, $stock, $imageNames['image'], $imageNames['image2'], $imageNames['image3'], $imageBase64['image'], $imageBase64['image2'], $imageBase64['image3'], $featured, $status]);
                 setFlash('success', 'Product created successfully!');
             }
             redirect(ADMIN_URL . '/products.php');

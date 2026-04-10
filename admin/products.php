@@ -112,9 +112,7 @@ $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
                 </thead>
                 <tbody>
                     <?php foreach ($products as $p):
-                        $imgSrc = !empty($p['image'])
-                            ? UPLOAD_URL . $p['image']
-                            : 'https://placehold.co/50x50/e3f2fd/1976d2?text=IMG';
+                        $imgSrc = getProductImage($p, 'image');
                     ?>
                     <tr>
                         <td class="ps-3"><?= $p['id'] ?></td>
