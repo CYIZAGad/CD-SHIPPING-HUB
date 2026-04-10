@@ -8,8 +8,9 @@ WORKDIR /var/www/html
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
+    default-mysql-client \
     netcat-openbsd \
-    && docker-php-ext-install pdo_pgsql \
+    && docker-php-ext-install pdo_pgsql pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache mod_rewrite for .htaccess
