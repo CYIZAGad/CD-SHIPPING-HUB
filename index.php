@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
 $categories = $pdo->query("SELECT c.*, COUNT(p.id) as product_count FROM categories c LEFT JOIN products p ON c.id = p.category_id AND p.status = 'active' GROUP BY c.id ORDER BY c.name")->fetchAll();
 
 // Get featured products
-$featured = $pdo->query("SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE COALESCE(p.featured, 0) = 1 AND p.status = 'active' ORDER BY p.id DESC LIMIT 8")->fetchAll();
+$featured = $pdo->query("SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE CAST(p.featured AS INTEGER) = 1 AND p.status = 'active' ORDER BY p.id DESC LIMIT 8")->fetchAll();
 
 // Get latest products
 $latest = $pdo->query("SELECT p.*, c.name as category_name FROM products p JOIN categories c ON p.category_id = c.id WHERE p.status = 'active' ORDER BY p.created_at DESC LIMIT 8")->fetchAll();
