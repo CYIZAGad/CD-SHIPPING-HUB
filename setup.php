@@ -269,36 +269,50 @@ try {
 
     // ============ INSERT SEED DATA ============
     
-    // Insert categories
-    if ($isPostgreSQL) {
-        $stmt = $pdo->prepare("INSERT INTO categories (id, name, slug, icon) VALUES (?, ?, ?, ?) ON CONFLICT (slug) DO NOTHING");
+    // Check if categories already exist
+    $categoryCount = $pdo->query($isPostgreSQL ? "SELECT COUNT(*) FROM categories" : "SELECT COUNT(*) FROM `categories`")->fetchColumn();
+    
+    if ($categoryCount == 0) {
+        // Insert categories only if table is empty
+        if ($isPostgreSQL) {
+            $stmt = $pdo->prepare("INSERT INTO categories (id, name, slug, icon) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO NOTHING");
+        } else {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO `categories` (`id`, `name`, `slug`, `icon`) VALUES (?, ?, ?, ?)");
+        }
+        
+        $categories = [
+            [1, 'Cars', 'cars', 'bi-car-front'],
+            [2, 'Smartphones', 'smartphones', 'bi-phone'],
+            [3, 'Desktop Computers', 'desktop-computers', 'bi-pc-display'],
+            [4, 'Laptops', 'laptops', 'bi-laptop'],
+            [5, 'Stoves', 'stoves', 'bi-fire'],
+            [6, 'Other Electronics', 'other-electronics', 'bi-lightning-charge'],
+        ];
+        
+        foreach ($categories as $category) {
+            $stmt->execute($category);
+        }
+        echo "✓ Inserted 6 categories\n";
     } else {
-        $stmt = $pdo->prepare("INSERT IGNORE INTO `categories` (`id`, `name`, `slug`, `icon`) VALUES (?, ?, ?, ?)");
+        echo "✓ Categories already exist (skipping insertion)\n";
     }
-    
-    $categories = [
-        [1, 'Cars', 'cars', 'bi-car-front'],
-        [2, 'Smartphones', 'smartphones', 'bi-phone'],
-        [3, 'Desktop Computers', 'desktop-computers', 'bi-pc-display'],
-        [4, 'Laptops', 'laptops', 'bi-laptop'],
-        [5, 'Stoves', 'stoves', 'bi-fire'],
-        [6, 'Other Electronics', 'other-electronics', 'bi-lightning-charge'],
-    ];
-    
-    foreach ($categories as $category) {
-        $stmt->execute($category);
-    }
-    echo "✓ Inserted 6 categories\n";
 
-    // Insert admin user
-    $adminPassword = password_hash('admin123', PASSWORD_BCRYPT);
-    if ($isPostgreSQL) {
-        $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password, phone, address, role) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (email) DO NOTHING");
+    // Check if admin user already exists
+    $userCount = $pdo->query($isPostgreSQL ? "SELECT COUNT(*) FROM users WHERE role='admin'" : "SELECT COUNT(*) FROM `users` WHERE `role`='admin'")->fetchColumn();
+    
+    if ($userCount == 0) {
+        // Insert admin user only if no admin exists
+        $adminPassword = password_hash('admin123', PASSWORD_BCRYPT);
+        if ($isPostgreSQL) {
+            $stmt = $pdo->prepare("INSERT INTO users (full_name, email, password, phone, address, role) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (email) DO NOTHING");
+        } else {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO `users` (`full_name`, `email`, `password`, `phone`, `address`, `role`) VALUES (?, ?, ?, ?, ?, ?)");
+        }
+        $stmt->execute(['Admin User', 'admin@cdshipping.com', $adminPassword, '+250785008063', 'Admin Office', 'admin']);
+        echo "✓ Inserted admin user\n\n";
     } else {
-        $stmt = $pdo->prepare("INSERT IGNORE INTO `users` (`full_name`, `email`, `password`, `phone`, `address`, `role`) VALUES (?, ?, ?, ?, ?, ?)");
+        echo "✓ Admin user already exists (skipping creation)\n\n";
     }
-    $stmt->execute(['Admin User', 'admin@cdshipping.com', $adminPassword, '+250785008063', 'Admin Office', 'admin']);
-    echo "✓ Inserted admin user\n\n";
 
     echo "✅ Database initialization completed successfully!\n";
     echo "🔐 Admin Credentials:\n";
