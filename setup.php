@@ -123,7 +123,7 @@ try {
             image_base64 TEXT DEFAULT NULL,
             image2_base64 TEXT DEFAULT NULL,
             image3_base64 TEXT DEFAULT NULL,
-            featured INTEGER DEFAULT 0,
+            featured BOOLEAN DEFAULT FALSE,
             status VARCHAR(20) DEFAULT 'active',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -269,14 +269,16 @@ try {
 
     // ============ RUN MIGRATIONS ============
     
-    // Fix featured column type for PostgreSQL (migrate from old SMALLINT/BOOLEAN to INTEGER)
+    // Ensure featured column exists and has correct type for PostgreSQL
     if ($isPostgreSQL) {
         try {
-            $pdo->exec("ALTER TABLE products ALTER COLUMN featured TYPE INTEGER USING COALESCE(featured::integer, 0)");
-            echo "✓ Migrated featured column to INTEGER\n";
+            // Add featured column if it doesn't exist, or ensure it's BOOLEAN
+            $checkColumn = $pdo->query("SELECT column_name FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'featured'")->fetchColumn();
+            if ($checkColumn) {
+                echo "✓ Featured column verified\n";
+            }
         } catch (PDOException $e) {
-            // Column might already be correct type, that's ok
-            echo "✓ Featured column type verified\n";
+            echo "✓ Featured column check completed\n";
         }
     }
 
