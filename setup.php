@@ -280,6 +280,30 @@ try {
         } catch (PDOException $e) {
             echo "✓ Featured column check completed\n";
         }
+        
+        // Add missing image_base64 columns for existing databases
+        $imageColumns = ['image_base64', 'image2_base64', 'image3_base64'];
+        foreach ($imageColumns as $col) {
+            try {
+                $checkCol = $pdo->query("SELECT column_name FROM information_schema.columns WHERE table_name = 'products' AND column_name = '" . $col . "'")->fetchColumn();
+                if (!$checkCol) {
+                    $pdo->exec("ALTER TABLE products ADD COLUMN $col TEXT DEFAULT NULL");
+                    echo "✓ Added missing column: $col\n";
+                }
+            } catch (PDOException $e) {
+                // Column might already exist
+            }
+        }
+    } else {
+        // MySQL - add missing columns if they don't exist
+        $imageColumns = ['image_base64', 'image2_base64', 'image3_base64'];
+        foreach ($imageColumns as $col) {
+            try {
+                $pdo->exec("ALTER TABLE `products` ADD COLUMN `$col` LONGTEXT DEFAULT NULL");
+            } catch (PDOException $e) {
+                // Column might already exist
+            }
+        }
     }
 
     // ============ INSERT SEED DATA ============

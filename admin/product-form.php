@@ -10,6 +10,33 @@ if (!isAdmin()) {
 
 $pageTitle = 'Product Form';
 $pdo = getDBConnection();
+
+// ============ MIGRATION: Ensure image_base64 columns exist ============
+// This handles databases created before these columns were added to the schema
+$imageColumns = ['image_base64', 'image2_base64', 'image3_base64'];
+foreach ($imageColumns as $col) {
+    try {
+        // Test if column exists by trying to SELECT it
+        $pdo->query("SELECT $col FROM products LIMIT 1");
+    } catch (PDOException $e) {
+        // Column doesn't exist, add it
+        try {
+            if (strpos($e->getMessage(), 'does not exist') !== false || strpos($e->getMessage(), 'Unknown column') !== false) {
+                // PostgreSQL or MySQL - add the missing column
+                $port = getenv('DB_PORT') ?: '5432';
+                if ((int)$port === 5432 || strpos(getenv('DB_HOST') ?: '', 'postgres') !== false) {
+                    $pdo->exec("ALTER TABLE products ADD COLUMN $col TEXT DEFAULT NULL");
+                } else {
+                    $pdo->exec("ALTER TABLE `products` ADD COLUMN `$col` LONGTEXT DEFAULT NULL");
+                }
+                error_log("Added missing column: $col");
+            }
+        } catch (PDOException $addErr) {
+            error_log("Could not add column $col: " . $addErr->getMessage());
+        }
+    }
+}
+
 $categories = $pdo->query("SELECT * FROM categories ORDER BY name")->fetchAll();
 
 $product = null;
@@ -53,7 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         foreach ($imageFields as $field) {
             $imageNames[$field] = $isEdit ? $product[$field] : null;
-            $imageBase64[$field] = $isEdit ? $product[$field . '_base64'] : null;
+            // Safely access base64 columns that might not exist in database yet
+            $imageBase64[$field] = $isEdit && isset($product[$field . '_base64']) ? $product[$field . '_base64'] : null;
 
             if (isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK) {
                 $file = $_FILES[$field];
