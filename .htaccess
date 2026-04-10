@@ -21,7 +21,7 @@ Options -Indexes
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
 
-<!-- Security Headers -->
+# Security Headers
 <IfModule mod_headers.c>
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-Content-Type-Options "nosniff"
@@ -34,7 +34,7 @@ Options -Indexes
     </FilesMatch>
 </IfModule>
 
-<!-- Compression for better performance (SEO ranking factor) -->
+# Compression for better performance (SEO ranking factor)
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain
     AddOutputFilterByType DEFLATE text/html
@@ -49,7 +49,7 @@ Options -Indexes
     AddOutputFilterByType DEFLATE application/json
 </IfModule>
 
-<!-- Browser caching -->
+# Browser caching
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresDefault "access plus 2 days"
