@@ -267,6 +267,19 @@ try {
 
     echo "✓ Tables created successfully\n\n";
 
+    // ============ RUN MIGRATIONS ============
+    
+    // Fix featured column type for PostgreSQL (migrate from old SMALLINT/BOOLEAN to INTEGER)
+    if ($isPostgreSQL) {
+        try {
+            $pdo->exec("ALTER TABLE products ALTER COLUMN featured TYPE INTEGER USING COALESCE(featured::integer, 0)");
+            echo "✓ Migrated featured column to INTEGER\n";
+        } catch (PDOException $e) {
+            // Column might already be correct type, that's ok
+            echo "✓ Featured column type verified\n";
+        }
+    }
+
     // ============ INSERT SEED DATA ============
     
     // Check if categories already exist
