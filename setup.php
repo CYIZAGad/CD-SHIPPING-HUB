@@ -123,7 +123,7 @@ try {
             image_base64 TEXT DEFAULT NULL,
             image2_base64 TEXT DEFAULT NULL,
             image3_base64 TEXT DEFAULT NULL,
-            featured SMALLINT DEFAULT 0,
+            featured INTEGER DEFAULT 0,
             status VARCHAR(20) DEFAULT 'active',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
