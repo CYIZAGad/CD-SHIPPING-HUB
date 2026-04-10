@@ -19,11 +19,11 @@ if (file_exists($envFile)) {
     }
 }
 
-// Database configuration with fallbacks for development
+// Database configuration with fallbacks (PostgreSQL for production, MySQL for local dev)
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_PORT', getenv('DB_PORT') ?: '5432');
 define('DB_NAME', getenv('DB_NAME') ?: 'cdshipping_hub');
-define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_USER', getenv('DB_USER') ?: 'postgres');
 define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
@@ -90,15 +90,30 @@ function getDBConnection() {
     static $pdo = null;
     if ($pdo === null) {
         try {
-            // Use MySQL/MariaDB since the schema is defined for MySQL
-            $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            // Detect database type from port or host
+            $isPostgreSQL = (int)DB_PORT === 5432 || 
+                           strpos(DB_HOST, 'postgres') !== false || 
+                           strpos(DB_HOST, 'dpg-') !== false;
+            
+            if ($isPostgreSQL) {
+                // PostgreSQL connection
+                $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME;
+            } else {
+                // MySQL/MariaDB connection
+                $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            }
+            
             $pdo = new PDO($dsn, DB_USER, DB_PASS, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
+            
+            // Log successful connection (for debugging)
+            error_log("Connected to " . ($isPostgreSQL ? "PostgreSQL" : "MySQL") . " at " . DB_HOST . ":" . DB_PORT);
         } catch (PDOException $e) {
-            die("Database connection failed. Please ensure MySQL/MariaDB database is configured correctly: " . $e->getMessage());
+            $dbType = ($isPostgreSQL ? "PostgreSQL" : "MySQL/MariaDB");
+            die("Database connection failed (using $dbType at " . DB_HOST . ":" . DB_PORT . "): " . $e->getMessage());
         }
     }
     return $pdo;
